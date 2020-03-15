@@ -1,8 +1,13 @@
 #!/bin/bash
-#%$> out/ble.sh
 #%[release = 0]
 #%[measure_load_time = 0]
 #%[debug_keylogger = 1]
+#%[target = getenv("blesh_target")]
+#%if target == "osh"
+#%%$> out/ble.osh
+#%else
+#%%$> out/ble.sh
+#%end
 #%#----------------------------------------------------------------------------
 #%if measure_load_time
 _ble_debug_measure_fork_count=$(echo $BASHPID)
@@ -127,6 +132,17 @@ time {
 #------------------------------------------------------------------------------
 # check shell
 
+#%if target == "osh"
+if [ "$0" \!= osh ]; then
+  echo "ble.sh: This shell is not Oil. Please use this script with Oil." >&3
+  return 1 2>/dev/null || exit 1
+fi 3>&2 >/dev/null 2>&1 # set -x 対策 #D0930
+
+# if [ ?? How to detect the version ?? ]; then
+#   echo "ble.sh: Oil with a version under 0.8 is not supported." >&3
+#   return 1 2>/dev/null || exit 1
+# fi 3>&2 >/dev/null 2>&1 # set -x 対策 #D0930
+#%else
 if [ -z "${BASH_VERSION-}" ]; then
   echo "ble.sh: This shell is not Bash. Please use this script with Bash." >&3
   return 1 2>/dev/null || exit 1
@@ -136,6 +152,7 @@ if [ -z "${BASH_VERSINFO-}" ] || [ "${BASH_VERSINFO-0}" -lt 3 ]; then
   echo "ble.sh: Bash with a version under 3.0 is not supported." >&3
   return 1 2>/dev/null || exit 1
 fi 3>&2 >/dev/null 2>&1 # set -x 対策 #D0930
+#%end
 
 if [[ ! $_ble_init_command ]]; then
   if ((BASH_SUBSHELL)); then
@@ -441,7 +458,11 @@ _ble_base_arguments_rcfile=
 ##   @var[out] _ble_base_arguments_rcfile
 function ble/base/read-blesh-arguments {
   local opts=
+#%if target == "osh"
+  local opt_attach=none
+#%else
   local opt_attach=prompt
+#%end
 
   _ble_init_command= # 再解析
   while (($#)); do
@@ -563,9 +584,19 @@ case ${BASH_VERSINFO[4]} in
     "  We recommend using ble.sh with a release version of Bash." >&2 ;;
 esac
 
+#%if target == "osh"
+# Pretend to be bash-5.0
+_ble_bash=50000
+#%else
 _ble_bash=$((BASH_VERSINFO[0]*10000+BASH_VERSINFO[1]*100+BASH_VERSINFO[2]))
+#%end
 _ble_bash_loaded_in_function=0
+#%if target == "osh"
+# OSH_TODO: How to test this?
+false && _ble_bash_loaded_in_function=1
+#%else
 local _ble_local_test 2>/dev/null && _ble_bash_loaded_in_function=1
+#%end
 
 _ble_version=0
 BLE_VERSION=$_ble_init_version
@@ -1067,7 +1098,11 @@ function ble/base/initialize-cache-directory/.xdg {
     return 1
   fi
 
+#%if target == "osh"
+  local ver=${BLE_VERSINFO[0]}.${BLE_VERSINFO[1]}-osh
+#%else
   local ver=${BLE_VERSINFO[0]}.${BLE_VERSINFO[1]}
+#%end
   ble/base/.create-user-directory _ble_base_cache "$cache_dir/blesh/$ver"
 }
 function ble/base/initialize-cache-directory {

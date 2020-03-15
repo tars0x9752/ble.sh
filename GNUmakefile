@@ -49,6 +49,13 @@ src/canvas.c2w.musl.sh: make/canvas.c2w.wcwidth-musl.c
 src/canvas.emoji.sh:
 	bash make_command.sh generate-emoji-table > $@
 
+outfiles+=$(OUTDIR)/ble.osh
+-include $(OUTDIR)/ble.osh.dep
+$(OUTDIR)/ble.osh: ble.pp GNUmakefile | $(OUTDIR)
+	DEPENDENCIES_PHONY=1 DEPENDENCIES_OUTPUT=$@.dep DEPENDENCIES_TARGET=$@ \
+	  blesh_target=osh FULLVER=$(FULLVER) \
+	  $(MWGPP) $< >/dev/null
+
 #------------------------------------------------------------------------------
 # keymap
 

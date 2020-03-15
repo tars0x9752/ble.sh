@@ -3028,7 +3028,7 @@ function ble/fd#is-open { : >&"$1"; } 2>/dev/null
 _ble_util_openat_nextfd=
 function ble/fd#alloc/.nextfd {
   [[ $_ble_util_openat_nextfd ]] ||
-    _ble_util_openat_nextfd=$bleopt_openat_base
+    _ble_util_openat_nextfd=${bleopt_openat_base:-30}
   # Note: Bash 3.1 では exec fd>&- で明示的に閉じても駄目。
   #   開いた後に読み取りプロセスで読み取りに失敗する。
   #   なので開いていない fd を探す必要がある。#D0992
