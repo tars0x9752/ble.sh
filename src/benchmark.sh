@@ -44,7 +44,7 @@ if [[ ${ZSH_VERSION-} ]]; then
       return 1
     fi
   }
-elif [[ $0 != osh ]] && ((BASH_VERSINFO[0]>=5)); then
+elif [[ ! $OIL_VERSION ]] && ((BASH_VERSINFO[0]>=5)); then
   _ble_measure_resolution=1 # [usec]
   function ble-measure/.get-realtime {
     local LC_ALL= LC_NUMERIC=C
