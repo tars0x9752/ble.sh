@@ -892,7 +892,7 @@ function ble/string#split-words {
 ##   @param[in]  text 分割する文字列を指定します。
 ##   @var[out] ret
 ##
-if ((_ble_bash>=40000)); then
+if ((_ble_bash>=40000&&!_ble_bash_oil)); then
   function ble/string#split-lines {
     mapfile -t "$1" <<< "$2"
   }
@@ -2118,6 +2118,19 @@ function ble/builtin/trap/install-hook {
 ## Note: bash-5.2 以上で $(< file) を使う可能性も考えたが、末尾改行が
 ##   消えてしまう事、末尾改行を未定義にしてまで使う程の速度差もない事、
 ##   などから採用は見送る事にした。
+#%if target == "osh"
+function ble/util/readfile {
+  builtin eval "$1=\$(cat \"\$2\"; echo -n _)"
+  builtin eval "$1=\${$1%_}"
+}
+function ble/util/mapfile {
+  local IFS= _ble_local_i=0 _ble_local_val _ble_local_arr; _ble_local_arr=()
+  while builtin read -r _ble_local_val || [[ $_ble_local_val ]]; do
+    _ble_local_arr[_ble_local_i++]=$_ble_local_val
+  done
+  builtin eval "$1=(\"\${_ble_local_arr[@]}\")"
+}
+#%else
 if ((_ble_bash>=40000)); then
   function ble/util/readfile { # 155ms for man bash
     local -a _ble_local_buffer=()
@@ -2144,6 +2157,7 @@ else
     builtin eval "$1=(\"\${_ble_local_arr[@]}\")"
   }
 fi
+#%end
 
 function ble/util/copyfile {
   local src=$1 dst=$2 content
@@ -2550,6 +2564,7 @@ function ble/util/assign/.rmtmp {
   : >| "$_ble_local_tmpfile"
 #%end
 }
+#%if target != "osh"
 if ((_ble_bash>=40000)); then
   # mapfile の方が read より高速
   function ble/util/assign {
@@ -2562,6 +2577,7 @@ if ((_ble_bash>=40000)); then
     return "$_ble_local_ret"
   }
 else
+#%end
   function ble/util/assign {
     local _ble_local_tmpfile; ble/util/assign/.mktmp
     builtin eval -- "$2" >| "$_ble_local_tmpfile"
@@ -2571,7 +2587,9 @@ else
     builtin eval "$1=\${$1%$'\n'}"
     return "$_ble_local_ret"
   }
+#%if target != "osh"
 fi
+#%end
 ## @fn ble/util/assign-array arr command args...
 ##   mapfile -t arr < <(command ...) の高速な代替です。
 ##   command はサブシェルではなく現在のシェルで実行されます。
@@ -2583,6 +2601,7 @@ fi
 ##   @param[in] args...
 ##     command から参照する引数 ($3 $4 ...) を指定します。
 ##
+#%if target != "osh"
 if ((_ble_bash>=40000)); then
   function ble/util/assign-array {
     local _ble_local_tmpfile; ble/util/assign/.mktmp
@@ -2593,6 +2612,7 @@ if ((_ble_bash>=40000)); then
     return "$_ble_local_ret"
   }
 else
+#%end
   function ble/util/assign-array {
     local _ble_local_tmpfile; ble/util/assign/.mktmp
     builtin eval -- "$2" >| "$_ble_local_tmpfile"
@@ -2601,7 +2621,9 @@ else
     ble/util/assign/.rmtmp
     return "$_ble_local_ret"
   }
+#%if target != "osh"
 fi
+#%end
 
 if ! ((_ble_bash>=40400)); then
   function ble/util/assign-array0 {
