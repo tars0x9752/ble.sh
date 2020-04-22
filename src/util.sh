@@ -3097,17 +3097,28 @@ function ble/fd#alloc {
 function ble/fd#finalize {
   local fd
   for fd in "${_ble_util_openat_fdlist[@]}"; do
+#%if target == "osh"
+    exec {fd}>&-
+#%else
     builtin eval "exec $fd>&-"
+#%end
   done
   _ble_util_openat_fdlist=()
 }
 ## @fn ble/fd#close fd
 ##   指定した fd を閉じます。
 function ble/fd#close {
+#%if target == "osh"
+  local fd=$(($1))
+  ((fd>=3)) || return 1
+  exec {fd}>&-
+  ble/array#remove _ble_util_openat_fdlist "$fd"
+#%else
   set -- $(($1))
   (($1>=3)) || return 1
   builtin eval "exec $1>&-"
   ble/array#remove _ble_util_openat_fdlist "$1"
+#%end
   return 0
 }
 
