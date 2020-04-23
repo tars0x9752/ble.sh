@@ -1,0 +1,14 @@
+#!/usr/bin/env osh
+# -*- mode: sh; mode: sh-bash; -*-
+
+shopt -s parse_dynamic_arith
+shopt -s eval_unsafe_arith
+shopt -s compat_array
+HISTFILE=$HOME/.osh_history
+
+. out/ble.osh
+. lib/test-main.sh
+. lib/test-util.sh
+. lib/test-canvas.sh
+. lib/test-decode.sh
+exit
