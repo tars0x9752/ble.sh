@@ -96,8 +96,13 @@ function ble-color-show {
 ## @fn ble/color/g2sgr-ansi g
 ##   @param[in] g
 ##   @var[out] ret
+#%if target == "osh"
+declare -gA _ble_color_g2sgr=()
+declare -gA _ble_color_g2sgr_ansi=()
+#%else
 _ble_color_g2sgr=()
 _ble_color_g2sgr_ansi=()
+#%end
 function ble/color/g2sgr/.impl {
   local g=$(($1))
 
@@ -132,7 +137,11 @@ function ble/color/g2sgr/.impl {
   _ble_color_g2sgr[$1]=$ret
 }
 function ble/color/g2sgr/.clear-cache {
+#%if target == "osh"
+  declare -gA _ble_color_g2sgr=()
+#%else
   _ble_color_g2sgr=()
+#%end
 }
 function ble/color/g2sgr {
   ret=${_ble_color_g2sgr[$1]}
