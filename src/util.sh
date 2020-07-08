@@ -4231,6 +4231,10 @@ function ble/util/reset-keymap-of-editing-mode {
   fi
 }
 
+#%if target == "osh"
+function ble/util/test-rl-variable { (($2)); }
+function ble/util/read-rl-variable { ret=$2; }
+#%else
 ## @fn ble/util/test-rl-variable name [default_exit]
 function ble/util/test-rl-variable {
   local rl_variables; ble/util/assign rl_variables 'builtin bind -v'
@@ -4252,6 +4256,7 @@ function ble/util/read-rl-variable {
   local rhs=${rl_variables#*$'\n'"set $1 "}
   [[ $rhs != "$rl_variables" ]] && ret=${rhs%%$'\n'*}
 }
+#%end
 
 #------------------------------------------------------------------------------
 # Functions for modules
